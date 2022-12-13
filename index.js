@@ -15,8 +15,7 @@ class BrCanvasElement extends HTMLCanvasElement {
   #ctx
   #mouseState = {
     x: 0,
-    y: 0,
-    d: false
+    y: 0
   }
   tool
 
@@ -28,25 +27,25 @@ class BrCanvasElement extends HTMLCanvasElement {
     
     function handler(name) {
       return function (e) {
+        e.preventDefault()
+
+        if(e.buttons === 0) return
+
         this.#mouseState.x = e.offsetX
         this.#mouseState.y = e.offsetY
-        this.#mouseState.l = this.#mouseState.d && e.button === 0
-        this.#mouseState.r = this.#mouseState.d && e.button === 2
 
         if(this.tool) {
           let rect = this.getBoundingClientRect()
           let ratioW = this.width / rect.width
           let ratioH = this.height / rect.height
-          for(let p of this.tool[name](this.#mouseState.x, this.#mouseState.y, this.#mouseState.l, this.#mouseState.r)) {
+          for(let p of this.tool[name](this.#mouseState.x, this.#mouseState.y, e.buttons & 1, (e.buttons >> 1) & 1)) {
             this.set(p.x*ratioW, p.y*ratioH, p.c)
           }
         }
       }
     }
 
-    this.addEventListener("mousedown", () => this.#mouseState.d = true)
-    this.addEventListener("mouseup", () => this.#mouseState.d = false)
-    this.addEventListener("mouseleave", () => this.#mouseState.d = false)
+    this.oncontextmenu = (e) => e.preventDefault()
 
     this.onmousedown = handler("down")
     this.onmousemove = handler("move")
